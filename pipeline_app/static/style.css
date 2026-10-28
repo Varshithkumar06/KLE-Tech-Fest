@@ -1,4 +1,4 @@
-/* Moolya: natural-dye palette.
+/* Estimo: natural-dye palette.
    Indigo vat (brief pane), lichen stone (page), turmeric (action),
    moss (low case), madder (high case). No neon anywhere. */
 
@@ -80,7 +80,7 @@ button, input, textarea { font: inherit; color: inherit; }
 
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-mark { width: 30px; height: 30px; flex: none; }
-.brand-name { font-size: 21px; font-weight: 700; letter-spacing: -.01em; font-stretch: 90%; }
+.brand-name { font-size: 21px; font-weight: 700; letter-spacing: -.01em; font-stretch: 90%; color: var(--ink); }
 .brand-event {
   margin-left: auto;
   font-size: 12.5px;

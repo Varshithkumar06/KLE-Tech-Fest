@@ -1,5 +1,5 @@
-/* Moolya front-end logic.
-   Works with the Moolya index.html and style.css, and talks to the same
+/* Estimo front-end logic.
+   Works with the Estimo index.html and style.css, and talks to the same
    backend: POST /api/estimate (SSE stream) and POST /api/chat. */
 (() => {
   'use strict';
@@ -137,6 +137,17 @@
     if (btn) btn.hidden = !data;
   }
 
+  // NEW: Click handlers for report buttons
+  function onReportClick(name) {
+    return () => {
+      const output = state.outputs[name];
+      if (!output) return;
+      $('modal-title').textContent = OUTPUT_TITLES[name] || 'Pipeline output';
+      $('modal-content').innerHTML = `<pre class="stage-output">${esc(JSON.stringify(outputWithoutLinks(output), null, 2))}</pre>`;
+      if (!els.dialog.open) els.dialog.showModal();
+    };
+  }
+
   function showStageOutput(name) {
     const output = state.outputs[name];
     if (!output) return;
@@ -144,6 +155,13 @@
     $('modal-content').innerHTML = `<pre class="stage-output">${esc(JSON.stringify(outputWithoutLinks(output), null, 2))}</pre>`;
     if (!els.dialog.open) els.dialog.showModal();
   }
+
+  // Wire up report button click handlers
+  $('btn-output-gemini').addEventListener('click', onReportClick('gemini'));
+  $('btn-output-hardware').addEventListener('click', onReportClick('hardware'));
+  $('btn-output-software').addEventListener('click', onReportClick('software'));
+  $('btn-output-prediction').addEventListener('click', onReportClick('prediction'));
+
 
   /* =========================================================
      Brief input: modes, files, validation
