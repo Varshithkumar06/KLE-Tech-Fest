@@ -1,4 +1,4 @@
-# HackFest 2026 - Team 4C.5: Project Cost Estimator Pipeline
+# Project Cost Estimator Pipeline
 
 An automated, intelligent multi-agent pipeline designed to parse software and hardware architecture diagrams, extract system requirements, predict engineering effort through machine learning models, search live component market prices, and synthesize unified cost estimations.
 
