@@ -236,6 +236,7 @@ Open the application in your browser:
 ```text
 http://127.0.0.1:5002
 ```
+Deployed link: https://nvidia-varshith06.azurewebsites.net/ 
 
 The application port may differ depending on the configuration in `pipeline_app/app.py`.
 
