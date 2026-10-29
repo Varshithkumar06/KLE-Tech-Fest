@@ -1,0 +1,15 @@
+# Estimo Core Requirements
+flask>=3.0
+gunicorn>=21.2
+openai>=1.30
+google-genai>=1.0
+joblib>=1.3
+numpy>=1.26
+pandas>=2.2
+scikit-learn==1.9.1
+pydantic>=2.5
+pillow>=10.0
+pypdf>=5.0
+json-repair>=0.30
+requests>=2.31
+websocket-client>=1.6

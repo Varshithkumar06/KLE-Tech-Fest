@@ -99,65 +99,48 @@ sequenceDiagram
 
 | Component | Directory | Description |
 |---|---|---|
-| Core Pipeline Dashboard | `pipeline_app/` | Central Flask application coordinating pipeline execution, UI rendering, and AI chat. |
-| Hardware Agent | `Hardware agent/` | Identifies hardware components, builds the bill of materials, and researches online prices using Tavily and SerpAPI. |
-| Software Agent | `software agent/` | Estimates functional size, development roles, effort, and software engineering requirements. |
-| ML Models and Datasets | `Models/` | Contains machine learning models, training notebooks, evaluation artifacts, and software effort datasets. |
-| Vision Engine | `Nvidea/` | Contains the multimodal image-processing implementation for extracting components from architecture diagrams. |
-| Test Bench | `TEST images/` | Stores example architecture diagrams and reference inputs for testing. |
+| Unified Runner | `run.py` | Root CLI and Web application runner for the entire project. |
+| Core Application Package | `estimo/` | Modular Flask application, Gemini vision engine, local ML inference, static UI, and templates. |
+| ML Subsystem | `ml/` | Training notebooks, benchmark datasets (ARFF/CSV), and registered scikit-learn models. |
+| Standalone Prototypes | `prototypes/` | Standalone prototypes for Hardware Agent (`hardware_agent/`) and Software Agent (`software_agent/`). |
+| Compatibility Shim | `pipeline_app/` | Backwards-compatibility wrapper for existing scripts and legacy setups. |
+| Test Bench | `test_images/` | Sample architecture diagrams and reference inputs for testing. |
 
 ## Repository Structure
 
 ```text
-Nvidea-hackathon/
-├── .gitignore
-├── README.md
-├── Hardware agent/
-│   ├── .env.example
-│   ├── .gitignore
-│   ├── README.md
-│   ├── app.py
-│   ├── requirements.txt
-│   └── templates/
-│       └── index.html
-├── Models/
-│   ├── SE_Cost_Estimation_Training_Evaluation.ipynb
-│   ├── dataset/
-│   │   ├── COCOMO-81.csv
-│   │   ├── Desharnais.csv
-│   │   ├── china.arff
-│   │   └── renzo-pomodoro.csv
-│   ├── models/
-│   │   ├── Actual.effort/
-│   │   ├── Effort/
-│   │   ├── TotalLaborCost/
-│   │   └── registry.json
-│   └── requirements.txt
-├── Nvidea/
-│   ├── image.py
-│   ├── key.txt.example
-│   └── parts_preview.png
-├── pipeline_app/
-│   ├── README.md
-│   ├── app.py
-│   ├── local_model.py
-│   ├── requirements.txt
-│   ├── static/
+KLE fest 2/
+├── .env.example                       # Unified environment template
+├── .gitignore                         # Project gitignore rules
+├── README.md                          # Project documentation
+├── requirements.txt                   # Consolidated Python dependencies
+├── run.py                             # Root runner (Web app & CLI pipeline)
+├── run_all_agents.py                  # CLI backwards-compatibility forwarder
+├── estimo/                            # Core Application Package
+│   ├── app.py                         # Unified Flask server & SSE pipeline
+│   ├── config.py                      # Centralized configuration & environment loader
+│   ├── local_model.py                 # Scikit-learn effort estimation inference
+│   ├── vision.py                      # Multimodal Gemini vision parser
+│   ├── key.txt                        # API key storage
+│   ├── data/                          # Reference planning heuristics
+│   │   ├── role_hours.json
+│   │   └── work_items_fp.json
+│   ├── static/                        # Frontend styling & JS logic
 │   │   ├── app.js
-│   │   ├── script.js
 │   │   └── style.css
-│   └── templates/
+│   └── templates/                     # HTML view
 │       └── index.html
-├── software agent/
-│   ├── README.md
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── role_hours.json
-│   ├── work_items_fp.json
-│   └── templates/
-│       └── index.html
-└── TEST images/
-    └── .gitkeep
+├── ml/                                # Machine Learning Subsystem
+│   ├── datasets/                      # Benchmark effort datasets (COCOMO, Desharnais, etc.)
+│   ├── notebooks/                     # SE_Cost_Estimation_Training_Evaluation.ipynb
+│   ├── models/                        # Trained models & registry.json
+│   └── requirements.txt               # ML training requirements
+├── prototypes/                        # Standalone Prototype Subsystems
+│   ├── hardware_agent/                # Legacy standalone hardware price finder
+│   └── software_agent/                # Legacy standalone software effort agent
+├── test_images/                       # Sample test diagrams & assets
+└── pipeline_app/                      # Backwards-compatibility shim
+    └── app.py                         # Forwards directly to estimo.app
 ```
 
 ## Setup and Installation
@@ -228,11 +211,24 @@ Replace all example values with valid credentials. Never commit API keys, access
 
 ### 4. Run the Application
 
-Launch the unified Flask dashboard:
+Launch the unified Estimo web dashboard:
 
 ```bash
-cd pipeline_app
-python app.py
+python run.py
+```
+
+Or run via CLI on a project brief:
+
+```bash
+python run.py --text "Build a smart drone with crop disease detection"
+python run.py --image test_images/parts_preview.png
+```
+
+Legacy commands continue to work seamlessly via shims:
+
+```bash
+python pipeline_app/app.py
+python run_all_agents.py --text "Build a drone"
 ```
 
 Open the application in your browser:

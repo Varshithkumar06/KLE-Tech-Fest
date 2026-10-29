@@ -437,8 +437,6 @@ def provider_tavily_tender(item: str, category: bool):
 
 
 PROVIDERS = {
-    "tinyfish": provider_tinyfish_general,
-    "tinyfish_stores": provider_tinyfish_stores,
     "tavily": provider_tavily_general,
     "serpapi_shopping": provider_serp_shopping,
     "serpapi_stores": provider_serp_stores,

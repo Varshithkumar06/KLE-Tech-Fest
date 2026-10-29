@@ -323,13 +323,14 @@ class ImageSplit(BaseModel):
 
 
 def _client():
-    if not API_KEY:
+    key = API_KEY or os.environ.get('GEMINI_API_KEY', '').strip()
+    if not key:
         raise ValueError("Gemini API key missing. Set GEMINI_API_KEY, then restart the server.")
     if "c" not in _client_cache:
         from google import genai
         from google.genai import types
         _client_cache["c"] = genai.Client(
-            api_key=API_KEY,
+            api_key=key,
             http_options=types.HttpOptions(
                 timeout=int(CALL_TIMEOUT * 1000),
                 retry_options=types.HttpRetryOptions(attempts=1)))
