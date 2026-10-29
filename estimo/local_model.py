@@ -54,11 +54,12 @@ def _install_pickle_compatibility() -> None:
 
 
 def _find_path(rel_path: str) -> Path:
-    """Find file in ml/ or fallback to legacy Models/."""
-    p_ml = ROOT_DIR / "ml" / rel_path
+    """Find file in ml/ or fallback to legacy Models/ (cross-platform Linux/Windows)."""
+    clean_parts = Path(rel_path.replace("\\", "/")).parts
+    p_ml = ROOT_DIR.joinpath("ml", *clean_parts)
     if p_ml.exists():
         return p_ml
-    p_old = ROOT_DIR / "Models" / rel_path
+    p_old = ROOT_DIR.joinpath("Models", *clean_parts)
     return p_old
 
 
