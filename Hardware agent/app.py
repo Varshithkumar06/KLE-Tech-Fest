@@ -29,6 +29,7 @@ def load_local_env():
 
 load_local_env()
 SERPAPI_KEY = os.environ.get("SERPAPI_KEY", "")
+TAVILY_API_KEY = os.environ.get("TAVILY_API_KEY", "")
 
 PROFILE_DIR = os.environ.get(
     "ANTIGRAVITY_PROFILE",
@@ -357,13 +358,25 @@ def serpapi_call(params: dict) -> dict:
     return data
 
 
+def tavily_call(query: str, max_results: int = 10) -> dict:
+    """Call the Tavily API and return parsed JSON."""
+    api_key = TAVILY_API_KEY
+    if not api_key:
+        raise RuntimeError("TAVILY_API_KEY is not configured.")
+    url = "https://api.tavily.com/search"
+    payload = {"query": query, "api_key": api_key, "max_results": max_results}
+    response = requests.post(url, json=payload, timeout=25)
+    response.raise_for_status()
+    return response.json()
+
 def site_clause(domains: list[str]) -> str:
     return "(" + " OR ".join(f"site:{d}" for d in domains) + ")"
 
 
-def provider_tinyfish_general(item: str, category: bool):
+def provider_tavily_general(item: str, category: bool):
     q = f"{item} electronics hardware price India" if category else f"{item} price India"
-    return [annotate(r, "tinyfish") for r in tinyfish_raw(q) if isinstance(r, dict)]
+    data = tavily_call(q)
+    return [annotate(r, "tavily") for r in data.get("results", []) if isinstance(r, dict)]
 
 
 def provider_tinyfish_stores(item: str, category: bool):
@@ -406,6 +419,9 @@ def provider_tenders(item: str, category: bool):
     if SERPAPI_KEY:
         data = serpapi_call({"engine": "google", "q": q, "gl": "in", "num": 10})
         out += [annotate(r, "serpapi-tender") for r in data.get("organic_results", [])]
+    elif TAVILY_API_KEY:
+        data = tavily_call(q)
+        out += [annotate(r, "tavily-tender") for r in data.get("results", []) if isinstance(r, dict)]
     else:
         out += [annotate(r, "tinyfish-tender") for r in tinyfish_raw(q) if isinstance(r, dict)]
     for r in out:
@@ -413,12 +429,21 @@ def provider_tenders(item: str, category: bool):
     return out
 
 
+def provider_tavily_tender(item: str, category: bool):
+    """Tavily-based tender search fallback."""
+    q = f'{item} (AOC OR "award of contract" OR tender OR "rate contract") {site_clause(TENDER_SITES)}'
+    data = tavily_call(q)
+    return [annotate(r, "tavily-tender") for r in data.get("results", []) if isinstance(r, dict)]
+
+
 PROVIDERS = {
     "tinyfish": provider_tinyfish_general,
     "tinyfish_stores": provider_tinyfish_stores,
+    "tavily": provider_tavily_general,
     "serpapi_shopping": provider_serp_shopping,
     "serpapi_stores": provider_serp_stores,
     "tenders": provider_tenders,
+    "tavily_tender": provider_tavily_tender,
 }
 
 
@@ -428,6 +453,15 @@ def search_item(query: str) -> dict:
     category = normalized in SPEC_REQUIREMENTS
     raw, status = [], {}
     with ThreadPoolExecutor(max_workers=len(PROVIDERS)) as pool:
+        futures = {pool.submit(provider, normalized, category): name for name, provider in PROVIDERS.items()}
+        for future in as_completed(futures):
+            name = futures[future]
+            try:
+                result = future.result()
+                if result:
+                    raw.append(result)
+            except Exception as e:
+                logger.error(f"Provider {name} failed: {e}")
         jobs = {pool.submit(fn, query, category): name for name, fn in PROVIDERS.items()}
         for job in as_completed(jobs):
             name = jobs[job]
